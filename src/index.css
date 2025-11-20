@@ -15,13 +15,13 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
     --primary: 262 83% 58%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 220 14.3% 95.9%;
+    --primary-foreground: 229 84% 4.902%;
+    --secondary: 229 84% 4.902%;
     --secondary-foreground: 240 5.9% 10%;
     --muted: 220 14.3% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 335 78% 59%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 222 47.3684% 11.1765%;
+    --accent-foreground: 229 84% 4.902%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 220 13% 91%;
