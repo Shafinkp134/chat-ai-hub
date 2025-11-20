@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import ChatSidebar from "@/components/chat/ChatSidebar";
 import ChatMessages from "@/components/chat/ChatMessages";
 import ChatInput from "@/components/chat/ChatInput";
+import ChatHeader from "@/components/chat/ChatHeader";
 import { Loader2 } from "lucide-react";
 
 interface Message {
@@ -229,11 +230,14 @@ const Chat = () => {
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      <ChatSidebar currentConversationId={currentConversationId} />
-      <div className="flex-1 flex flex-col">
-        <ChatMessages messages={messages} isStreaming={isStreaming} />
-        <ChatInput onSend={handleSendMessage} disabled={isStreaming} />
+    <div className="flex h-screen flex-col">
+      <ChatHeader />
+      <div className="flex flex-1 overflow-hidden">
+        <ChatSidebar currentConversationId={currentConversationId} />
+        <div className="flex-1 flex flex-col">
+          <ChatMessages messages={messages} isStreaming={isStreaming} />
+          <ChatInput onSend={handleSendMessage} disabled={isStreaming} />
+        </div>
       </div>
     </div>
   );
