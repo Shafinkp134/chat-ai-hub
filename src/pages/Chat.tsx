@@ -26,6 +26,7 @@ const Chat = () => {
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [chatMode, setChatMode] = useState<"chat" | "image">("chat");
+  const [isTemporary, setIsTemporary] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -105,10 +106,10 @@ const Chat = () => {
     }
   };
 
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = async (content: string, uploadedFile?: File) => {
     let convId = currentConversationId;
 
-    if (!convId) {
+    if (!isTemporary && !convId) {
       convId = await createConversation(content);
       if (!convId) return;
       setCurrentConversationId(convId);
@@ -126,15 +127,17 @@ const Chat = () => {
     setMessages((prev) => [...prev, userMessage]);
 
     try {
-      const { error: insertError } = await supabase
-        .from("messages")
-        .insert({
-          conversation_id: convId,
-          role: "user",
-          content,
-        });
+      if (!isTemporary && convId) {
+        const { error: insertError } = await supabase
+          .from("messages")
+          .insert({
+            conversation_id: convId,
+            role: "user",
+            content,
+          });
 
-      if (insertError) throw insertError;
+        if (insertError) throw insertError;
+      }
 
       setIsStreaming(true);
 
@@ -175,11 +178,13 @@ const Chat = () => {
 
         setMessages((prev) => [...prev, assistantMessage]);
 
-        await supabase.from("messages").insert({
-          conversation_id: convId,
-          role: "assistant",
-          content: data.content,
-        });
+        if (!isTemporary && convId) {
+          await supabase.from("messages").insert({
+            conversation_id: convId,
+            role: "assistant",
+            content: data.content,
+          });
+        }
 
         setIsStreaming(false);
         return;
@@ -257,11 +262,13 @@ const Chat = () => {
         }
       }
 
-      await supabase.from("messages").insert({
-        conversation_id: convId,
-        role: "assistant",
-        content: assistantContent,
-      });
+      if (!isTemporary && convId) {
+        await supabase.from("messages").insert({
+          conversation_id: convId,
+          role: "assistant",
+          content: assistantContent,
+        });
+      }
 
     } catch (error: any) {
       toast({
@@ -284,7 +291,7 @@ const Chat = () => {
 
   return (
     <div className="flex h-screen flex-col">
-      <ChatHeader />
+      <ChatHeader isTemporary={isTemporary} onTemporaryChange={setIsTemporary} />
       <div className="flex flex-1 overflow-hidden">
         <ChatSidebar currentConversationId={currentConversationId} />
         <div className="flex-1 flex flex-col">

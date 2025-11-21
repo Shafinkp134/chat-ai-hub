@@ -1,12 +1,12 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, MessageSquare, Image } from "lucide-react";
+import { Send, MessageSquare, Image, Upload } from "lucide-react";
 
 interface ChatInputProps {
-  onSend: (message: string) => void;
+  onSend: (message: string, file?: File) => void;
   disabled?: boolean;
   mode: "chat" | "image";
   onModeChange: (mode: "chat" | "image") => void;
@@ -16,12 +16,22 @@ const ChatInput = ({ onSend, disabled, mode, onModeChange }: ChatInputProps) => 
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [message, setMessage] = useState("");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim() && !disabled) {
-      onSend(message);
+      onSend(message, uploadedFile || undefined);
       setMessage("");
+      setUploadedFile(null);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadedFile(file);
     }
   };
 
@@ -57,7 +67,28 @@ const ChatInput = ({ onSend, disabled, mode, onModeChange }: ChatInputProps) => 
             Image
           </Button>
         </div>
+        {uploadedFile && (
+          <div className="text-sm text-muted-foreground mb-2">
+            📎 {uploadedFile.name}
+          </div>
+        )}
         <div className={`flex ${isMobile ? 'gap-2' : 'gap-4'}`}>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            className="hidden"
+            accept="image/*"
+          />
+          <Button
+            type="button"
+            size="icon"
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            className={`${isMobile ? 'h-[50px] w-[50px]' : 'h-[60px] w-[60px]'} shrink-0`}
+          >
+            <Upload className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+          </Button>
           <Textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}

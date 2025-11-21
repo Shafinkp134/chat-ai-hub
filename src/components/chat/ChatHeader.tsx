@@ -16,9 +16,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { LogOut, Settings, CreditCard, User, Languages, Sparkles } from "lucide-react";
+import { LogOut, Settings, CreditCard, User, Languages, Sparkles, Clock } from "lucide-react";
 
-const ChatHeader = () => {
+interface ChatHeaderProps {
+  isTemporary?: boolean;
+  onTemporaryChange?: (value: boolean) => void;
+}
+
+const ChatHeader = ({ isTemporary, onTemporaryChange }: ChatHeaderProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t, i18n } = useTranslation();
@@ -67,6 +72,15 @@ const ChatHeader = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant={isTemporary ? "default" : "outline"}
+            size={isMobile ? "sm" : "default"}
+            onClick={() => onTemporaryChange?.(!isTemporary)}
+            className={isMobile ? "text-xs" : ""}
+          >
+            <Clock className={`${isMobile ? 'h-3 w-3 mr-1' : 'h-4 w-4 mr-2'}`} />
+            {isMobile ? "" : "Temporary"}
+          </Button>
           {!isMobile && (
             <Button
               variant="ghost"
