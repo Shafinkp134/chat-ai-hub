@@ -10,6 +10,8 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   created_at: string;
+  imageUrl?: string;
+  mode?: "chat" | "image";
 }
 
 interface ChatMessagesProps {
@@ -73,10 +75,21 @@ const ChatMessages = ({ messages, isStreaming }: ChatMessagesProps) => {
               }`}
             >
               {message.role === "assistant" ? (
-                <div className={`prose prose-sm dark:prose-invert max-w-none ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                  <ReactMarkdown>
-                    {message.content}
-                  </ReactMarkdown>
+                <div className="space-y-3">
+                  {message.imageUrl && (
+                    <div className="rounded-lg overflow-hidden border border-border/30">
+                      <img 
+                        src={message.imageUrl} 
+                        alt="Generated image" 
+                        className="w-full h-auto"
+                      />
+                    </div>
+                  )}
+                  <div className={`prose prose-sm dark:prose-invert max-w-none ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                    <ReactMarkdown>
+                      {message.content}
+                    </ReactMarkdown>
+                  </div>
                 </div>
               ) : (
                 <p className={`${isMobile ? 'text-xs' : 'text-sm'} whitespace-pre-wrap`}>{message.content}</p>

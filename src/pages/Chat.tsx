@@ -13,6 +13,8 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   created_at: string;
+  imageUrl?: string;
+  mode?: "chat" | "image";
 }
 
 const Chat = () => {
@@ -23,6 +25,7 @@ const Chat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [chatMode, setChatMode] = useState<"chat" | "image">("chat");
 
   useEffect(() => {
     checkAuth();
@@ -117,6 +120,7 @@ const Chat = () => {
       role: "user",
       content,
       created_at: new Date().toISOString(),
+      mode: chatMode,
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -133,6 +137,55 @@ const Chat = () => {
       if (insertError) throw insertError;
 
       setIsStreaming(true);
+
+      // Image generation mode
+      if (chatMode === "image") {
+        const allMessages = [...messages, userMessage];
+        const messagesToSend = allMessages.map(m => ({
+          role: m.role,
+          content: m.content
+        }));
+
+        const { data: { session } } = await supabase.auth.getSession();
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${session?.access_token}`,
+            },
+            body: JSON.stringify({ messages: messagesToSend, mode: "image" }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const assistantMessage: Message = {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: data.content,
+          created_at: new Date().toISOString(),
+          imageUrl: data.imageUrl,
+          mode: "image",
+        };
+
+        setMessages((prev) => [...prev, assistantMessage]);
+
+        await supabase.from("messages").insert({
+          conversation_id: convId,
+          role: "assistant",
+          content: data.content,
+        });
+
+        setIsStreaming(false);
+        return;
+      }
+
+      // Regular chat mode
       const allMessages = [...messages, userMessage];
       const messagesToSend = allMessages.map(m => ({
         role: m.role,
@@ -148,7 +201,7 @@ const Chat = () => {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${session?.access_token}`,
           },
-          body: JSON.stringify({ messages: messagesToSend }),
+          body: JSON.stringify({ messages: messagesToSend, mode: "chat" }),
         }
       );
 
@@ -236,7 +289,12 @@ const Chat = () => {
         <ChatSidebar currentConversationId={currentConversationId} />
         <div className="flex-1 flex flex-col">
           <ChatMessages messages={messages} isStreaming={isStreaming} />
-          <ChatInput onSend={handleSendMessage} disabled={isStreaming} />
+          <ChatInput 
+            onSend={handleSendMessage} 
+            disabled={isStreaming} 
+            mode={chatMode}
+            onModeChange={setChatMode}
+          />
         </div>
       </div>
     </div>

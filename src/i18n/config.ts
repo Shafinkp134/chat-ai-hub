@@ -16,7 +16,9 @@ const resources = {
       "pricing": "Pricing",
       "signIn": "Sign In",
       "signUp": "Sign Up",
-      "language": "Language"
+      "language": "Language",
+      "chatMode": "Chat",
+      "imageMode": "Image"
     }
   },
   es: {
@@ -33,7 +35,9 @@ const resources = {
       "pricing": "Precios",
       "signIn": "Iniciar Sesión",
       "signUp": "Registrarse",
-      "language": "Idioma"
+      "language": "Idioma",
+      "chatMode": "Chat",
+      "imageMode": "Imagen"
     }
   },
   fr: {
@@ -50,7 +54,9 @@ const resources = {
       "pricing": "Tarification",
       "signIn": "Se Connecter",
       "signUp": "S'inscrire",
-      "language": "Langue"
+      "language": "Langue",
+      "chatMode": "Chat",
+      "imageMode": "Image"
     }
   },
   de: {
@@ -67,7 +73,9 @@ const resources = {
       "pricing": "Preise",
       "signIn": "Anmelden",
       "signUp": "Registrieren",
-      "language": "Sprache"
+      "language": "Sprache",
+      "chatMode": "Chat",
+      "imageMode": "Bild"
     }
   },
   zh: {
@@ -84,7 +92,9 @@ const resources = {
       "pricing": "定价",
       "signIn": "登录",
       "signUp": "注册",
-      "language": "语言"
+      "language": "语言",
+      "chatMode": "聊天",
+      "imageMode": "图像"
     }
   },
   ja: {
@@ -101,7 +111,9 @@ const resources = {
       "pricing": "料金",
       "signIn": "サインイン",
       "signUp": "サインアップ",
-      "language": "言語"
+      "language": "言語",
+      "chatMode": "チャット",
+      "imageMode": "画像"
     }
   },
   ar: {
@@ -118,7 +130,9 @@ const resources = {
       "pricing": "التسعير",
       "signIn": "تسجيل الدخول",
       "signUp": "إنشاء حساب",
-      "language": "اللغة"
+      "language": "اللغة",
+      "chatMode": "دردشة",
+      "imageMode": "صورة"
     }
   }
 };
