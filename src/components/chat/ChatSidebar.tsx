@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageSquare, Plus, LogOut, CreditCard, Menu, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useTranslation } from "react-i18next";
 
 interface Conversation {
   id: string;
@@ -19,6 +21,8 @@ interface ChatSidebarProps {
 const ChatSidebar = ({ currentConversationId }: ChatSidebarProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -57,29 +61,35 @@ const ChatSidebar = ({ currentConversationId }: ChatSidebarProps) => {
 
   return (
     <>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="fixed top-4 left-4 z-50 md:hidden"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-      </Button>
+      {isMobile && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="fixed top-4 left-4 z-50"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </Button>
+      )}
 
       <div
-        className={`fixed md:relative inset-y-0 left-0 z-40 w-64 bg-sidebar border-r border-sidebar-border transform transition-transform duration-200 ease-in-out ${
-          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        }`}
+        className={`${
+          isMobile
+            ? `fixed inset-y-0 left-0 z-40 w-72 transform transition-transform duration-300 ease-in-out ${
+                isOpen ? "translate-x-0" : "-translate-x-full"
+              }`
+            : "relative w-64"
+        } bg-sidebar border-r border-sidebar-border`}
       >
         <div className="flex flex-col h-full">
-          <div className="p-4 border-b border-sidebar-border">
-            <div className="flex items-center gap-2 mb-4">
-              <MessageSquare className="h-6 w-6 text-primary" />
-              <h1 className="text-xl font-bold">ChatAI</h1>
+          <div className={`${isMobile ? 'p-3' : 'p-4'} border-b border-sidebar-border`}>
+            <div className="flex items-center gap-2 mb-3">
+              <MessageSquare className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} text-primary`} />
+              <h1 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold`}>Cheetha</h1>
             </div>
-            <Button onClick={handleNewChat} className="w-full" variant="default">
+            <Button onClick={handleNewChat} className="w-full" variant="default" size={isMobile ? "sm" : "default"}>
               <Plus className="h-4 w-4 mr-2" />
-              New Chat
+              {t('newChat')}
             </Button>
           </div>
 
@@ -101,33 +111,35 @@ const ChatSidebar = ({ currentConversationId }: ChatSidebarProps) => {
             </div>
           </ScrollArea>
 
-          <div className="p-4 border-t border-sidebar-border space-y-2">
+          <div className={`${isMobile ? 'p-3' : 'p-4'} border-t border-sidebar-border space-y-2`}>
             <Button
               variant="ghost"
               className="w-full justify-start"
+              size={isMobile ? "sm" : "default"}
               onClick={() => {
                 navigate("/pricing");
                 setIsOpen(false);
               }}
             >
               <CreditCard className="h-4 w-4 mr-2" />
-              Upgrade Plan
+              {t('upgradePlan')}
             </Button>
             <Button
               variant="ghost"
               className="w-full justify-start"
+              size={isMobile ? "sm" : "default"}
               onClick={handleSignOut}
             >
               <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
+              {t('logout')}
             </Button>
           </div>
         </div>
       </div>
 
-      {isOpen && (
+      {isMobile && isOpen && (
         <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 md:hidden"
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30"
           onClick={() => setIsOpen(false)}
         />
       )}

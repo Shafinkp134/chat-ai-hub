@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +22,7 @@ const ChatHeader = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t, i18n } = useTranslation();
+  const isMobile = useIsMobile();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -50,37 +52,38 @@ const ChatHeader = () => {
 
   return (
     <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-      <div className="flex h-16 items-center justify-between px-6">
+      <div className={`flex ${isMobile ? 'h-14' : 'h-16'} items-center justify-between ${isMobile ? 'px-16' : 'px-6'}`}>
         <div className="flex items-center gap-3">
           <div className="relative">
-            <Sparkles className="h-8 w-8 text-primary animate-pulse" />
+            <Sparkles className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} text-primary animate-pulse`} />
             <div className="absolute inset-0 blur-xl bg-primary/20 animate-pulse" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-gradient">
+            <h1 className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-gradient`}>
               {t('appName')}
             </h1>
-            <p className="text-xs text-muted-foreground">Your AI Assistant</p>
+            {!isMobile && <p className="text-xs text-muted-foreground">Your AI Assistant</p>}
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/pricing")}
-            className="hidden sm:flex"
-          >
-            <CreditCard className="h-4 w-4 mr-2" />
-            {t('pricing')}
-          </Button>
+        <div className="flex items-center gap-2">
+          {!isMobile && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/pricing")}
+            >
+              <CreditCard className="h-4 w-4 mr-2" />
+              {t('pricing')}
+            </Button>
+          )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
-                <Avatar className="h-8 w-8 ring-2 ring-primary/20">
+                <Avatar className={`${isMobile ? 'h-7 w-7' : 'h-8 w-8'} ring-2 ring-primary/20`}>
                   <AvatarFallback className="bg-gradient-to-br from-primary to-accent">
-                    <User className="h-4 w-4" />
+                    <User className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
                   </AvatarFallback>
                 </Avatar>
               </Button>
