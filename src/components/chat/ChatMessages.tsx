@@ -1,9 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Bot, User, Sparkles } from "lucide-react";
+import { Bot, User, Sparkles, Copy, Volume2, Check } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface Message {
   id: string;
@@ -22,12 +24,36 @@ interface ChatMessagesProps {
 const ChatMessages = ({ messages, isStreaming }: ChatMessagesProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+  const { toast } = useToast();
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [speakingId, setSpeakingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  const handleCopy = async (content: string, id: string) => {
+    await navigator.clipboard.writeText(content);
+    setCopiedId(id);
+    toast({ title: "Copied to clipboard" });
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleSpeak = (content: string, id: string) => {
+    if (speakingId === id) {
+      window.speechSynthesis.cancel();
+      setSpeakingId(null);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(content);
+    utterance.onend = () => setSpeakingId(null);
+    window.speechSynthesis.speak(utterance);
+    setSpeakingId(id);
+  };
 
   if (messages.length === 0) {
     return (
@@ -77,18 +103,45 @@ const ChatMessages = ({ messages, isStreaming }: ChatMessagesProps) => {
               {message.role === "assistant" ? (
                 <div className="space-y-3">
                   {message.imageUrl && (
-                    <div className="rounded-lg overflow-hidden border border-border/30">
+                    <div className="relative rounded-lg overflow-hidden border border-border/30">
                       <img 
                         src={message.imageUrl} 
                         alt="Generated image" 
                         className="w-full h-auto"
                       />
+                      <div className="absolute bottom-3 right-3 bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-lg text-sm font-bold text-primary shadow-lg border border-primary/20">
+                        CHEETHA
+                      </div>
                     </div>
                   )}
                   <div className={`prose prose-sm dark:prose-invert max-w-none ${isMobile ? 'text-xs' : 'text-sm'}`}>
                     <ReactMarkdown>
                       {message.content}
                     </ReactMarkdown>
+                  </div>
+                  <div className="flex gap-1 pt-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCopy(message.content, message.id)}
+                      className="h-7 px-2 text-xs"
+                    >
+                      {copiedId === message.id ? (
+                        <Check className="h-3 w-3 mr-1" />
+                      ) : (
+                        <Copy className="h-3 w-3 mr-1" />
+                      )}
+                      {!isMobile && (copiedId === message.id ? "Copied" : "Copy")}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleSpeak(message.content, message.id)}
+                      className="h-7 px-2 text-xs"
+                    >
+                      <Volume2 className={`h-3 w-3 mr-1 ${speakingId === message.id ? 'text-primary' : ''}`} />
+                      {!isMobile && (speakingId === message.id ? "Stop" : "Speak")}
+                    </Button>
                   </div>
                 </div>
               ) : (
