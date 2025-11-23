@@ -13,7 +13,7 @@ interface Message {
   content: string;
   created_at: string;
   imageUrl?: string;
-  mode?: "chat" | "image";
+  mode?: "chat" | "image" | "edit";
 }
 
 interface ChatMessagesProps {

@@ -3,10 +3,20 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageSquare, Plus, LogOut, CreditCard, Menu, X } from "lucide-react";
+import { MessageSquare, Plus, LogOut, CreditCard, Menu, X, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "react-i18next";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Conversation {
   id: string;
@@ -16,15 +26,18 @@ interface Conversation {
 
 interface ChatSidebarProps {
   currentConversationId: string | null;
+  onConversationDeleted?: () => void;
 }
 
-const ChatSidebar = ({ currentConversationId }: ChatSidebarProps) => {
+const ChatSidebar = ({ currentConversationId, onConversationDeleted }: ChatSidebarProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     loadConversations();
@@ -57,6 +70,45 @@ const ChatSidebar = ({ currentConversationId }: ChatSidebarProps) => {
   const handleConversationClick = (id: string) => {
     navigate(`/chat/${id}`);
     setIsOpen(false);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setConversationToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!conversationToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('conversations')
+        .delete()
+        .eq('id', conversationToDelete);
+
+      if (error) throw error;
+
+      toast({
+        title: "Conversation deleted",
+        description: "The conversation has been deleted successfully.",
+      });
+
+      setConversations(prev => prev.filter(c => c.id !== conversationToDelete));
+
+      if (conversationToDelete === currentConversationId && onConversationDeleted) {
+        onConversationDeleted();
+      }
+
+      setDeleteDialogOpen(false);
+      setConversationToDelete(null);
+    } catch (error: any) {
+      toast({
+        title: "Error deleting conversation",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -96,17 +148,27 @@ const ChatSidebar = ({ currentConversationId }: ChatSidebarProps) => {
           <ScrollArea className="flex-1 p-2">
             <div className="space-y-1">
               {conversations.map((conversation) => (
-                <button
+                <div
                   key={conversation.id}
-                  onClick={() => handleConversationClick(conversation.id)}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                  className={`group relative w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                     currentConversationId === conversation.id
                       ? "bg-sidebar-accent text-sidebar-accent-foreground"
                       : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
                   }`}
                 >
-                  <div className="truncate">{conversation.title}</div>
-                </button>
+                  <button
+                    onClick={() => handleConversationClick(conversation.id)}
+                    className="w-full text-left pr-8"
+                  >
+                    <div className="truncate">{conversation.title}</div>
+                  </button>
+                  <button
+                    onClick={(e) => handleDeleteClick(e, conversation.id)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-destructive/10 rounded"
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </button>
+                </div>
               ))}
             </div>
           </ScrollArea>
@@ -143,6 +205,23 @@ const ChatSidebar = ({ currentConversationId }: ChatSidebarProps) => {
           onClick={() => setIsOpen(false)}
         />
       )}
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Conversation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this conversation? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
