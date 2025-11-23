@@ -21,9 +21,10 @@ import { LogOut, Settings, CreditCard, User, Languages, Sparkles, Clock } from "
 interface ChatHeaderProps {
   isTemporary?: boolean;
   onTemporaryChange?: (value: boolean) => void;
+  remainingCredits?: number | null;
 }
 
-const ChatHeader = ({ isTemporary, onTemporaryChange }: ChatHeaderProps) => {
+const ChatHeader = ({ isTemporary, onTemporaryChange, remainingCredits }: ChatHeaderProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t, i18n } = useTranslation();
@@ -72,6 +73,12 @@ const ChatHeader = ({ isTemporary, onTemporaryChange }: ChatHeaderProps) => {
         </div>
 
         <div className="flex items-center gap-2">
+          {remainingCredits !== null && remainingCredits !== undefined && (
+            <Button variant="outline" size="sm" className="gap-1">
+              <Sparkles className="h-3 w-3" />
+              {remainingCredits} images left
+            </Button>
+          )}
           <Button
             variant={isTemporary ? "default" : "outline"}
             size={isMobile ? "sm" : "default"}

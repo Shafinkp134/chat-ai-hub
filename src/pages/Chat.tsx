@@ -14,7 +14,7 @@ interface Message {
   content: string;
   created_at: string;
   imageUrl?: string;
-  mode?: "chat" | "image";
+  mode?: "chat" | "image" | "edit";
 }
 
 const Chat = () => {
@@ -25,11 +25,14 @@ const Chat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [chatMode, setChatMode] = useState<"chat" | "image">("chat");
+  const [chatMode, setChatMode] = useState<"chat" | "image" | "edit">("chat");
   const [isTemporary, setIsTemporary] = useState(false);
+  const [remainingCredits, setRemainingCredits] = useState<number | null>(null);
+  const [uploadedImageForEdit, setUploadedImageForEdit] = useState<string | null>(null);
 
   useEffect(() => {
     checkAuth();
+    loadUserCredits();
   }, []);
 
   useEffect(() => {
@@ -41,6 +44,11 @@ const Chat = () => {
       setLoading(false);
     }
   }, [conversationId]);
+
+  const loadUserCredits = async () => {
+    // Credits system will be enabled after migration is approved
+    setRemainingCredits(null);
+  };
 
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -141,6 +149,72 @@ const Chat = () => {
 
       setIsStreaming(true);
 
+      // Image editing mode
+      if (chatMode === "edit" && uploadedImageForEdit) {
+        const allMessages = [...messages, userMessage];
+        const messagesToSend = allMessages.map(m => ({
+          role: m.role,
+          content: m.content
+        }));
+
+        const { data: { session } } = await supabase.auth.getSession();
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${session?.access_token}`,
+            },
+            body: JSON.stringify({ 
+              messages: messagesToSend, 
+              mode: "edit",
+              imageToEdit: uploadedImageForEdit 
+            }),
+          }
+        );
+
+        if (response.status === 403) {
+          const data = await response.json();
+          toast({
+            title: "Daily limit reached",
+            description: data.error,
+            variant: "destructive",
+          });
+          setIsStreaming(false);
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const assistantMessage: Message = {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: data.content,
+          created_at: new Date().toISOString(),
+          imageUrl: data.imageUrl,
+          mode: "edit",
+        };
+
+        setMessages((prev) => [...prev, assistantMessage]);
+        setUploadedImageForEdit(null);
+        await loadUserCredits();
+
+        if (!isTemporary && convId) {
+          await supabase.from("messages").insert({
+            conversation_id: convId,
+            role: "assistant",
+            content: data.content,
+          });
+        }
+
+        setIsStreaming(false);
+        return;
+      }
+
       // Image generation mode
       if (chatMode === "image") {
         const allMessages = [...messages, userMessage];
@@ -162,11 +236,23 @@ const Chat = () => {
           }
         );
 
+        if (response.status === 403) {
+          const data = await response.json();
+          toast({
+            title: "Daily limit reached",
+            description: data.error,
+            variant: "destructive",
+          });
+          setIsStreaming(false);
+          return;
+        }
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
+        await loadUserCredits();
         const assistantMessage: Message = {
           id: crypto.randomUUID(),
           role: "assistant",
@@ -289,11 +375,31 @@ const Chat = () => {
     );
   }
 
+  const handleFileUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setUploadedImageForEdit(e.target?.result as string);
+      setChatMode("edit");
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="flex h-screen flex-col">
-      <ChatHeader isTemporary={isTemporary} onTemporaryChange={setIsTemporary} />
+      <ChatHeader 
+        isTemporary={isTemporary} 
+        onTemporaryChange={setIsTemporary}
+        remainingCredits={remainingCredits}
+      />
       <div className="flex flex-1 overflow-hidden">
-        <ChatSidebar currentConversationId={currentConversationId} />
+        <ChatSidebar 
+          currentConversationId={currentConversationId}
+          onConversationDeleted={() => {
+            navigate('/chat');
+            setMessages([]);
+            setCurrentConversationId(null);
+          }}
+        />
         <div className="flex-1 flex flex-col">
           <ChatMessages messages={messages} isStreaming={isStreaming} />
           <ChatInput 
@@ -301,6 +407,8 @@ const Chat = () => {
             disabled={isStreaming} 
             mode={chatMode}
             onModeChange={setChatMode}
+            onFileUpload={handleFileUpload}
+            uploadedImage={uploadedImageForEdit}
           />
         </div>
       </div>

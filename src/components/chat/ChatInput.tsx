@@ -8,11 +8,13 @@ import { Send, MessageSquare, Image, Upload } from "lucide-react";
 interface ChatInputProps {
   onSend: (message: string, file?: File) => void;
   disabled?: boolean;
-  mode: "chat" | "image";
-  onModeChange: (mode: "chat" | "image") => void;
+  mode: "chat" | "image" | "edit";
+  onModeChange: (mode: "chat" | "image" | "edit") => void;
+  onFileUpload?: (file: File) => void;
+  uploadedImage?: string | null;
 }
 
-const ChatInput = ({ onSend, disabled, mode, onModeChange }: ChatInputProps) => {
+const ChatInput = ({ onSend, disabled, mode, onModeChange, onFileUpload, uploadedImage }: ChatInputProps) => {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [message, setMessage] = useState("");
@@ -30,7 +32,8 @@ const ChatInput = ({ onSend, disabled, mode, onModeChange }: ChatInputProps) => 
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (file && onFileUpload) {
+      onFileUpload(file);
       setUploadedFile(file);
     }
   };
@@ -64,10 +67,25 @@ const ChatInput = ({ onSend, disabled, mode, onModeChange }: ChatInputProps) => 
             className="flex-1"
           >
             <Image className="h-4 w-4 mr-2" />
-            Image
+            Generate
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={mode === "edit" ? "default" : "outline"}
+            onClick={() => fileInputRef.current?.click()}
+            className="flex-1"
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            Edit Image
           </Button>
         </div>
-        {uploadedFile && (
+        {uploadedImage && (
+          <div className="mb-2">
+            <img src={uploadedImage} alt="To edit" className="max-h-32 rounded" />
+          </div>
+        )}
+        {uploadedFile && !uploadedImage && (
           <div className="text-sm text-muted-foreground mb-2">
             📎 {uploadedFile.name}
           </div>
@@ -80,20 +98,15 @@ const ChatInput = ({ onSend, disabled, mode, onModeChange }: ChatInputProps) => 
             className="hidden"
             accept="image/*"
           />
-          <Button
-            type="button"
-            size="icon"
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            className={`${isMobile ? 'h-[50px] w-[50px]' : 'h-[60px] w-[60px]'} shrink-0`}
-          >
-            <Upload className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-          </Button>
           <Textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={mode === "image" ? "Describe the image you want to generate..." : t('typeMessage')}
+            placeholder={
+              mode === "edit" ? "Describe how to edit the image..." :
+              mode === "image" ? "Describe the image you want to generate..." : 
+              t('typeMessage')
+            }
             className={`${isMobile ? 'min-h-[50px] max-h-[120px] text-sm' : 'min-h-[60px] max-h-[200px]'} resize-none border-border/50 focus-visible:ring-primary`}
             disabled={disabled}
           />
