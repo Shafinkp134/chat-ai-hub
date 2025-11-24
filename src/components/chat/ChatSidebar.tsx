@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageSquare, Plus, LogOut, CreditCard, Menu, X, Trash2 } from "lucide-react";
+import { MessageSquare, Plus, LogOut, CreditCard, Menu, X, Trash2, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "react-i18next";
@@ -38,6 +38,30 @@ const ChatSidebar = ({ currentConversationId, onConversationDeleted }: ChatSideb
   const [isOpen, setIsOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    loadConversations();
+    checkAdminStatus();
+  }, [currentConversationId]);
+
+  const checkAdminStatus = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .single();
+
+      setIsAdmin(!!roles);
+    } catch (error) {
+      setIsAdmin(false);
+    }
+  };
 
   useEffect(() => {
     loadConversations();
@@ -174,6 +198,20 @@ const ChatSidebar = ({ currentConversationId, onConversationDeleted }: ChatSideb
           </ScrollArea>
 
           <div className={`${isMobile ? 'p-3' : 'p-4'} border-t border-sidebar-border space-y-2`}>
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                size={isMobile ? "sm" : "default"}
+                onClick={() => {
+                  navigate("/admin");
+                  setIsOpen(false);
+                }}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Admin Panel
+              </Button>
+            )}
             <Button
               variant="ghost"
               className="w-full justify-start"
