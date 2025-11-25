@@ -108,7 +108,7 @@ const Auth = () => {
         <CardHeader className="space-y-3 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <MessageSquare className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold">ChatAI</h1>
+            <h1 className="text-2xl font-bold">Stechy AI</h1>
           </div>
           <CardTitle>{isSignUp ? "Create an account" : "Welcome back"}</CardTitle>
           <CardDescription>

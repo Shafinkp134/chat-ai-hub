@@ -9,7 +9,9 @@ import Chat from "./pages/Chat";
 import Pricing from "./pages/Pricing";
 import Privacy from "./pages/Privacy";
 import Admin from "./pages/Admin";
+import APIKeys from "./pages/APIKeys";
 import NotFound from "./pages/NotFound";
+import MaintenanceCheck from "./components/MaintenanceCheck";
 
 const queryClient = new QueryClient();
 
@@ -19,17 +21,20 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/chat" element={<Chat />} />
-          <Route path="/chat/:conversationId" element={<Chat />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/admin" element={<Admin />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <MaintenanceCheck>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/chat/:conversationId" element={<Chat />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/api-keys" element={<APIKeys />} />
+            <Route path="/admin" element={<Admin />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </MaintenanceCheck>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
