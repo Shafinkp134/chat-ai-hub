@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { AlertCircle, LogOut, Settings, Users, Bell, Wrench } from "lucide-react";
+import { AlertCircle, LogOut, Settings, Users, Bell, Wrench, CreditCard } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Admin() {
@@ -28,6 +28,15 @@ export default function Admin() {
   const [bannerMessage, setBannerMessage] = useState("");
   const [bannerBgColor, setBannerBgColor] = useState("#3b82f6");
   const [bannerTextColor, setBannerTextColor] = useState("#ffffff");
+
+  // Payment settings
+  const [stripeEnabled, setStripeEnabled] = useState(false);
+  const [stripePublishableKey, setStripePublishableKey] = useState("");
+  const [pricingTiers, setPricingTiers] = useState({
+    free: { credits: "10", price: "0" },
+    pro: { credits: "100", price: "9.99" },
+    enterprise: { credits: "1000", price: "49.99" }
+  });
 
   useEffect(() => {
     checkAdminAccess();
@@ -106,6 +115,22 @@ export default function Admin() {
       const value = settingsData.value as any;
       setMaintenanceMode(value.enabled || false);
       setMaintenanceMessage(value.message || "");
+    }
+
+    // Load payment settings
+    const { data: paymentSettings } = await supabase
+      .from("site_settings")
+      .select("*")
+      .eq("key", "payment_settings")
+      .single();
+    
+    if (paymentSettings && paymentSettings.value && typeof paymentSettings.value === 'object') {
+      const value = paymentSettings.value as any;
+      setStripeEnabled(value.stripe_enabled || false);
+      setStripePublishableKey(value.stripe_publishable_key || "");
+      if (value.pricing_tiers) {
+        setPricingTiers(value.pricing_tiers);
+      }
     }
   };
 
@@ -221,6 +246,25 @@ export default function Admin() {
     }
   };
 
+  const handleSavePaymentSettings = async () => {
+    const { error } = await supabase
+      .from("site_settings")
+      .upsert({
+        key: "payment_settings",
+        value: {
+          stripe_enabled: stripeEnabled,
+          stripe_publishable_key: stripePublishableKey,
+          pricing_tiers: pricingTiers
+        }
+      }, { onConflict: "key" });
+
+    if (error) {
+      toast.error("Failed to save payment settings");
+    } else {
+      toast.success("Payment settings saved successfully");
+    }
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
@@ -251,7 +295,7 @@ export default function Admin() {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="users">
               <Users className="h-4 w-4 mr-2" />
               Users
@@ -259,6 +303,10 @@ export default function Admin() {
             <TabsTrigger value="banners">
               <Bell className="h-4 w-4 mr-2" />
               Event Banners
+            </TabsTrigger>
+            <TabsTrigger value="payments">
+              <CreditCard className="h-4 w-4 mr-2" />
+              Payments
             </TabsTrigger>
             <TabsTrigger value="maintenance">
               <Wrench className="h-4 w-4 mr-2" />
@@ -426,6 +474,152 @@ export default function Admin() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="payments">
+            <Card>
+              <CardHeader>
+                <CardTitle>Payment System Settings</CardTitle>
+                <CardDescription>Configure payment processing and pricing tiers</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="stripe-toggle">Enable Stripe Payments</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Allow users to purchase credits via Stripe
+                    </p>
+                  </div>
+                  <Switch
+                    id="stripe-toggle"
+                    checked={stripeEnabled}
+                    onCheckedChange={setStripeEnabled}
+                  />
+                </div>
+
+                {stripeEnabled && (
+                  <div>
+                    <Label htmlFor="stripe-key">Stripe Publishable Key</Label>
+                    <Input
+                      id="stripe-key"
+                      type="text"
+                      value={stripePublishableKey}
+                      onChange={(e) => setStripePublishableKey(e.target.value)}
+                      placeholder="pk_live_..."
+                      className="mt-2"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Your Stripe publishable key (starts with pk_)
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <h3 className="font-semibold">Pricing Tiers</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Free Tier</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div>
+                          <Label htmlFor="free-credits">Credits</Label>
+                          <Input
+                            id="free-credits"
+                            type="number"
+                            value={pricingTiers.free.credits}
+                            onChange={(e) => setPricingTiers({
+                              ...pricingTiers,
+                              free: { ...pricingTiers.free, credits: e.target.value }
+                            })}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="free-price">Price ($)</Label>
+                          <Input
+                            id="free-price"
+                            type="number"
+                            value={pricingTiers.free.price}
+                            disabled
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Pro Tier</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div>
+                          <Label htmlFor="pro-credits">Credits</Label>
+                          <Input
+                            id="pro-credits"
+                            type="number"
+                            value={pricingTiers.pro.credits}
+                            onChange={(e) => setPricingTiers({
+                              ...pricingTiers,
+                              pro: { ...pricingTiers.pro, credits: e.target.value }
+                            })}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="pro-price">Price ($)</Label>
+                          <Input
+                            id="pro-price"
+                            type="number"
+                            step="0.01"
+                            value={pricingTiers.pro.price}
+                            onChange={(e) => setPricingTiers({
+                              ...pricingTiers,
+                              pro: { ...pricingTiers.pro, price: e.target.value }
+                            })}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Enterprise Tier</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div>
+                          <Label htmlFor="enterprise-credits">Credits</Label>
+                          <Input
+                            id="enterprise-credits"
+                            type="number"
+                            value={pricingTiers.enterprise.credits}
+                            onChange={(e) => setPricingTiers({
+                              ...pricingTiers,
+                              enterprise: { ...pricingTiers.enterprise, credits: e.target.value }
+                            })}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="enterprise-price">Price ($)</Label>
+                          <Input
+                            id="enterprise-price"
+                            type="number"
+                            step="0.01"
+                            value={pricingTiers.enterprise.price}
+                            onChange={(e) => setPricingTiers({
+                              ...pricingTiers,
+                              enterprise: { ...pricingTiers.enterprise, price: e.target.value }
+                            })}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+
+                <Button onClick={handleSavePaymentSettings}>
+                  Save Payment Settings
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="maintenance">
