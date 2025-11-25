@@ -35,12 +35,13 @@ export default function EventBanner() {
       .select("*")
       .eq("is_active", true)
       .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
+      .limit(1);
 
-    if (data) {
-      setBanner(data);
+    if (data && data.length > 0) {
+      setBanner(data[0]);
       setDismissed(false);
+    } else {
+      setBanner(null);
     }
   };
 
