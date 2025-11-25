@@ -161,7 +161,7 @@ const ChatSidebar = ({ currentConversationId, onConversationDeleted }: ChatSideb
           <div className={`${isMobile ? 'p-3' : 'p-4'} border-b border-sidebar-border`}>
             <div className="flex items-center gap-2 mb-3">
               <MessageSquare className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} text-primary`} />
-              <h1 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold`}>Cheetha</h1>
+              <h1 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold`}>Stechy</h1>
             </div>
             <Button onClick={handleNewChat} className="w-full" variant="default" size={isMobile ? "sm" : "default"}>
               <Plus className="h-4 w-4 mr-2" />

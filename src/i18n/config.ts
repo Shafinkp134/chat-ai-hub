@@ -4,9 +4,9 @@ import { initReactI18next } from 'react-i18next';
 const resources = {
   en: {
     translation: {
-      "appName": "Cheetha AI",
+      "appName": "Stechy AI",
       "startConversation": "Start a new conversation",
-      "askAnything": "Ask me anything! I'm Cheetha, your AI assistant here to help with questions, creative writing, analysis, and more.",
+      "askAnything": "Ask me anything! I'm Stechy, your AI assistant here to help with questions, creative writing, analysis, and more.",
       "typeMessage": "Type your message...",
       "send": "Send",
       "newChat": "New Chat",
@@ -23,9 +23,9 @@ const resources = {
   },
   es: {
     translation: {
-      "appName": "Cheetha AI",
+      "appName": "Stechy AI",
       "startConversation": "Iniciar una nueva conversación",
-      "askAnything": "¡Pregúntame cualquier cosa! Soy Cheetha, tu asistente de IA aquí para ayudarte con preguntas, escritura creativa, análisis y más.",
+      "askAnything": "¡Pregúntame cualquier cosa! Soy Stechy, tu asistente de IA aquí para ayudarte con preguntas, escritura creativa, análisis y más.",
       "typeMessage": "Escribe tu mensaje...",
       "send": "Enviar",
       "newChat": "Nuevo Chat",
@@ -42,9 +42,9 @@ const resources = {
   },
   fr: {
     translation: {
-      "appName": "Cheetha AI",
+      "appName": "Stechy AI",
       "startConversation": "Démarrer une nouvelle conversation",
-      "askAnything": "Demandez-moi n'importe quoi! Je suis Cheetha, votre assistant IA ici pour vous aider avec des questions, de l'écriture créative, des analyses et plus encore.",
+      "askAnything": "Demandez-moi n'importe quoi! Je suis Stechy, votre assistant IA ici pour vous aider avec des questions, de l'écriture créative, des analyses et plus encore.",
       "typeMessage": "Tapez votre message...",
       "send": "Envoyer",
       "newChat": "Nouveau Chat",
@@ -61,9 +61,9 @@ const resources = {
   },
   de: {
     translation: {
-      "appName": "Cheetha AI",
+      "appName": "Stechy AI",
       "startConversation": "Neue Konversation starten",
-      "askAnything": "Frag mich alles! Ich bin Cheetha, dein KI-Assistent, der dir bei Fragen, kreativem Schreiben, Analysen und mehr hilft.",
+      "askAnything": "Frag mich alles! Ich bin Stechy, dein KI-Assistent, der dir bei Fragen, kreativem Schreiben, Analysen und mehr hilft.",
       "typeMessage": "Gib deine Nachricht ein...",
       "send": "Senden",
       "newChat": "Neuer Chat",
@@ -80,9 +80,9 @@ const resources = {
   },
   zh: {
     translation: {
-      "appName": "Cheetha AI",
+      "appName": "Stechy AI",
       "startConversation": "开始新对话",
-      "askAnything": "问我任何问题！我是Cheetha，你的AI助手，可以帮助你解答问题、创意写作、分析等。",
+      "askAnything": "问我任何问题！我是Stechy，你的AI助手，可以帮助你解答问题、创意写作、分析等。",
       "typeMessage": "输入您的消息...",
       "send": "发送",
       "newChat": "新聊天",
@@ -99,9 +99,9 @@ const resources = {
   },
   ja: {
     translation: {
-      "appName": "Cheetha AI",
+      "appName": "Stechy AI",
       "startConversation": "新しい会話を始める",
-      "askAnything": "何でも聞いてください！私はCheetha、質問、創作、分析などをサポートするAIアシスタントです。",
+      "askAnything": "何でも聞いてください！私はStechy、質問、創作、分析などをサポートするAIアシスタントです。",
       "typeMessage": "メッセージを入力...",
       "send": "送信",
       "newChat": "新しいチャット",
@@ -118,9 +118,9 @@ const resources = {
   },
   ar: {
     translation: {
-      "appName": "Cheetha AI",
+      "appName": "Stechy AI",
       "startConversation": "ابدأ محادثة جديدة",
-      "askAnything": "اسألني أي شيء! أنا Cheetha، مساعدك الذكي هنا لمساعدتك في الأسئلة والكتابة الإبداعية والتحليل والمزيد.",
+      "askAnything": "اسألني أي شيء! أنا Stechy، مساعدك الذكي هنا لمساعدتك في الأسئلة والكتابة الإبداعية والتحليل والمزيد.",
       "typeMessage": "اكتب رسالتك...",
       "send": "إرسال",
       "newChat": "محادثة جديدة",

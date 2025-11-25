@@ -20,6 +20,17 @@ const Privacy = () => {
         <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
 
         <div className="prose prose-slate dark:prose-invert max-w-none space-y-6">
+          <section className="mb-8 p-6 bg-muted rounded-lg">
+            <h2 className="text-2xl font-semibold mb-4">Company Information</h2>
+            <div className="space-y-2 text-muted-foreground">
+              <p><strong className="text-foreground">Company:</strong> Stechy AI</p>
+              <p><strong className="text-foreground">CEO & Founder:</strong> Muhammed Shafin KP</p>
+              <p><strong className="text-foreground">Developer:</strong> Muhammed Shafin KP</p>
+              <p><strong className="text-foreground">Editor:</strong> Muhammed Shafin KP</p>
+              <p><strong className="text-foreground">Last Updated:</strong> {new Date().toLocaleDateString()}</p>
+            </div>
+          </section>
+
           <section>
             <h2 className="text-2xl font-semibold mb-4">1. Information We Collect</h2>
             <p className="text-muted-foreground">
@@ -49,35 +60,42 @@ const Privacy = () => {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">4. Data Retention</h2>
+            <h2 className="text-2xl font-semibold mb-4">4. API Access and Security</h2>
+            <p className="text-muted-foreground">
+              API keys generated through our platform are for your personal use only. You are responsible for keeping your API keys secure. We recommend rotating keys regularly and never sharing them publicly.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">5. Data Retention</h2>
             <p className="text-muted-foreground">
               We retain your information for as long as your account is active or as needed to provide you services. You can delete your conversations at any time through the interface. Deleted conversations are permanently removed from our active databases.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">5. Credits and Usage Limits</h2>
+            <h2 className="text-2xl font-semibold mb-4">6. Credits and Usage Limits</h2>
             <p className="text-muted-foreground">
               Free users have a daily limit of 2 image generations or edits. These limits reset daily at midnight UTC. Premium users have higher limits as specified in their subscription plan. We track usage to ensure fair use of our resources.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">6. Data Security</h2>
+            <h2 className="text-2xl font-semibold mb-4">7. Data Security</h2>
             <p className="text-muted-foreground">
               We implement appropriate technical and organizational measures to protect your personal information against unauthorized or unlawful processing, accidental loss, destruction, or damage. However, no method of transmission over the internet is 100% secure.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">7. Third-Party Services</h2>
+            <h2 className="text-2xl font-semibold mb-4">8. Third-Party Services</h2>
             <p className="text-muted-foreground">
               We use third-party AI services to provide image generation and chat functionality. These services may have their own privacy policies, and your use of our service constitutes acceptance of those policies as well.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">8. Your Rights</h2>
+            <h2 className="text-2xl font-semibold mb-4">9. Your Rights</h2>
             <p className="text-muted-foreground mb-2">
               You have the right to:
             </p>
@@ -91,31 +109,25 @@ const Privacy = () => {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">9. Children's Privacy</h2>
+            <h2 className="text-2xl font-semibold mb-4">10. Children's Privacy</h2>
             <p className="text-muted-foreground">
               Our service is not directed to children under 13. We do not knowingly collect personal information from children under 13. If you become aware that a child has provided us with personal information, please contact us.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">10. Changes to This Policy</h2>
+            <h2 className="text-2xl font-semibold mb-4">11. Changes to This Policy</h2>
             <p className="text-muted-foreground">
               We may update this privacy policy from time to time. We will notify you of any changes by posting the new privacy policy on this page and updating the "Last Updated" date.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">11. Contact Us</h2>
+            <h2 className="text-2xl font-semibold mb-4">12. Contact Us</h2>
             <p className="text-muted-foreground">
-              If you have any questions about this Privacy Policy, please contact us through our support channels.
+              If you have any questions about this Privacy Policy, please contact us through our support channels or reach out to our CEO, Muhammed Shafin KP.
             </p>
           </section>
-
-          <div className="mt-8 pt-8 border-t border-border">
-            <p className="text-sm text-muted-foreground">
-              Last Updated: {new Date().toLocaleDateString()}
-            </p>
-          </div>
         </div>
       </div>
     </div>

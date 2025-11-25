@@ -153,7 +153,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are Cheetha, a helpful and friendly AI assistant. Keep your responses clear, concise, and engaging. Format responses nicely using markdown when appropriate.'
+            content: 'You are Stechy, a helpful and friendly AI assistant. Keep your responses clear, concise, and engaging. Format responses nicely using markdown when appropriate.'
           },
           ...messages
         ],

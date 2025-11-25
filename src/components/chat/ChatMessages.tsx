@@ -67,7 +67,7 @@ const ChatMessages = ({ messages, isStreaming }: ChatMessagesProps) => {
             Start a new conversation
           </h2>
           <p className={`text-muted-foreground ${isMobile ? 'text-base' : 'text-lg'}`}>
-            Ask me anything! I'm <span className="font-semibold text-primary">Cheetha</span>, your AI assistant here to help with questions, creative writing, analysis, and more.
+            Ask me anything! I'm <span className="font-semibold text-primary">Stechy</span>, your AI assistant here to help with questions, creative writing, analysis, and more.
           </p>
         </div>
       </div>
@@ -110,7 +110,7 @@ const ChatMessages = ({ messages, isStreaming }: ChatMessagesProps) => {
                         className="w-full h-auto"
                       />
                       <div className="absolute bottom-3 right-3 bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-lg text-sm font-bold text-primary shadow-lg border border-primary/20">
-                        CHEETHA
+                        STECHY
                       </div>
                     </div>
                   )}
