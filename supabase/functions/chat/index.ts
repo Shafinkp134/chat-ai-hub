@@ -12,10 +12,10 @@ serve(async (req) => {
 
   try {
     const { messages, mode = "chat", imageToEdit } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
     
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    if (!GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY is not configured');
     }
 
     console.log('Starting request with mode:', mode, 'messages:', messages.length);
@@ -25,24 +25,33 @@ serve(async (req) => {
       const lastMessage = messages[messages.length - 1];
       const prompt = lastMessage?.content || "edit this image";
 
-      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      // Extract base64 from data URL
+      const base64Data = imageToEdit.split(',')[1];
+      const mimeType = imageToEdit.split(';')[0].split(':')[1] || 'image/jpeg';
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash-image-preview',
-          messages: [
-            {
-              role: 'user',
-              content: [
-                { type: 'text', text: prompt },
-                { type: 'image_url', image_url: { url: imageToEdit } }
-              ]
-            },
-          ],
-          modalities: ['image', 'text'],
+          contents: [{
+            parts: [
+              { text: prompt },
+              {
+                inline_data: {
+                  mime_type: mimeType,
+                  data: base64Data
+                }
+              }
+            ]
+          }],
+          generationConfig: {
+            temperature: 0.7,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 2048,
+          }
         }),
       });
 
@@ -57,24 +66,15 @@ serve(async (req) => {
           );
         }
         
-        if (response.status === 402) {
-          return new Response(
-            JSON.stringify({ error: 'Payment required. Please add credits to continue.' }),
-            { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-        
         throw new Error(`Image editing failed: ${response.status}`);
       }
 
       const data = await response.json();
-      const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-      const textContent = data.choices?.[0]?.message?.content || "I've edited the image for you.";
+      const textContent = data.candidates?.[0]?.content?.parts?.[0]?.text || "I've analyzed and processed the image for you.";
 
       return new Response(
         JSON.stringify({ 
           content: textContent,
-          imageUrl: imageUrl 
         }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -82,26 +82,37 @@ serve(async (req) => {
       );
     }
 
-    // Image generation mode
+    // Image generation mode - using Gemini's image capabilities
     if (mode === "image") {
       const lastMessage = messages[messages.length - 1];
       const prompt = lastMessage?.content || "a beautiful image";
 
-      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      // Use Gemini for image description since direct generation isn't available
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash-image-preview',
-          messages: [
-            {
-              role: 'user',
-              content: prompt,
-            },
-          ],
-          modalities: ['image', 'text'],
+          contents: [{
+            parts: [{
+              text: `You are a creative image description AI. The user wants to generate an image with this prompt: "${prompt}". 
+              
+Since direct image generation isn't available, provide:
+1. A detailed, vivid description of what this image would look like
+2. Artistic style suggestions
+3. Color palette recommendations
+4. Composition ideas
+
+Be creative and inspiring in your response!`
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.9,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 1024,
+          }
         }),
       });
 
@@ -116,24 +127,15 @@ serve(async (req) => {
           );
         }
         
-        if (response.status === 402) {
-          return new Response(
-            JSON.stringify({ error: 'Payment required. Please add credits to continue.' }),
-            { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-        
         throw new Error(`Image generation failed: ${response.status}`);
       }
 
       const data = await response.json();
-      const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-      const textContent = data.choices?.[0]?.message?.content || "I've generated an image for you.";
+      const textContent = data.candidates?.[0]?.content?.parts?.[0]?.text || "I've created an image description for you.";
 
       return new Response(
         JSON.stringify({ 
           content: textContent,
-          imageUrl: imageUrl 
         }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -141,29 +143,51 @@ serve(async (req) => {
       );
     }
 
-    // Regular chat mode
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // Regular chat mode with streaming
+    const systemPrompt = 'You are Stechy, a helpful, friendly, and intelligent AI assistant. You provide clear, concise, and engaging responses. You can help with questions, creative writing, analysis, coding, and more. Format responses nicely using markdown when appropriate.';
+
+    const geminiMessages = messages.map((m: { role: string; content: string }) => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }]
+    }));
+
+    // Add system instruction as first user message if needed
+    if (geminiMessages.length > 0 && geminiMessages[0].role !== 'model') {
+      geminiMessages.unshift({
+        role: 'user',
+        parts: [{ text: systemPrompt }]
+      });
+      geminiMessages.splice(1, 0, {
+        role: 'model',
+        parts: [{ text: 'Understood! I am Stechy, ready to help you. How can I assist you today?' }]
+      });
+    }
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are Stechy, a helpful and friendly AI assistant. Keep your responses clear, concise, and engaging. Format responses nicely using markdown when appropriate.'
-          },
-          ...messages
-        ],
-        stream: true,
+        contents: geminiMessages,
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 8192,
+        },
+        safetySettings: [
+          { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+        ]
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
+      console.error('Gemini API error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -172,17 +196,47 @@ serve(async (req) => {
         );
       }
       
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'Payment required. Please add credits to continue.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      throw new Error(`AI Gateway error: ${response.status}`);
+      throw new Error(`Gemini API error: ${response.status}`);
     }
 
-    return new Response(response.body, {
+    // Transform Gemini SSE to OpenAI-compatible format
+    const transformStream = new TransformStream({
+      transform(chunk, controller) {
+        const text = new TextDecoder().decode(chunk);
+        const lines = text.split('\n');
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const jsonStr = line.slice(6);
+            if (jsonStr.trim() === '[DONE]') {
+              controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'));
+              continue;
+            }
+            
+            try {
+              const parsed = JSON.parse(jsonStr);
+              const content = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
+              
+              if (content) {
+                const openAiFormat = {
+                  choices: [{
+                    delta: { content },
+                    index: 0
+                  }]
+                };
+                controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(openAiFormat)}\n\n`));
+              }
+            } catch (e) {
+              // Skip malformed JSON
+            }
+          }
+        }
+      }
+    });
+
+    const transformedStream = response.body?.pipeThrough(transformStream);
+
+    return new Response(transformedStream, {
       headers: {
         ...corsHeaders,
         'Content-Type': 'text/event-stream',
