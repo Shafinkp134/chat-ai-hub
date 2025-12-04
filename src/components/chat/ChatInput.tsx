@@ -57,7 +57,7 @@ const ChatInput = ({ onSend, disabled, mode, onModeChange, onFileUpload, uploade
     chat: {
       icon: MessageSquare,
       label: "Chat",
-      description: "Powered by Gemini 2.0",
+      description: "Powered by Gemini 1.5",
       gradient: "from-blue-500 to-cyan-500",
     },
     image: {
@@ -170,7 +170,7 @@ const ChatInput = ({ onSend, disabled, mode, onModeChange, onFileUpload, uploade
             />
             <div className="absolute bottom-2 right-3 flex items-center gap-1 text-[10px] text-muted-foreground/50">
               <Sparkles className="h-3 w-3" />
-              Gemini 2.0
+              Gemini 1.5
             </div>
           </div>
           <Button
