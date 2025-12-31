@@ -6,6 +6,7 @@ import ReactMarkdown from "react-markdown";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import type { ChatMode } from "./ChatInput";
 
 interface Message {
   id: string;
@@ -13,7 +14,7 @@ interface Message {
   content: string;
   created_at: string;
   imageUrl?: string;
-  mode?: "chat" | "image" | "edit";
+  mode?: ChatMode;
 }
 
 interface ChatMessagesProps {
