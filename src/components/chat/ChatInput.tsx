@@ -3,13 +3,15 @@ import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, MessageSquare, Wand2, ImagePlus, X, Sparkles } from "lucide-react";
+import { Send, MessageSquare, Wand2, ImagePlus, X, Sparkles, FileText, Languages, Code } from "lucide-react";
+
+export type ChatMode = "chat" | "image" | "edit" | "summarize" | "translate" | "code";
 
 interface ChatInputProps {
   onSend: (message: string, file?: File) => void;
   disabled?: boolean;
-  mode: "chat" | "image" | "edit";
-  onModeChange: (mode: "chat" | "image" | "edit") => void;
+  mode: ChatMode;
+  onModeChange: (mode: ChatMode) => void;
   onFileUpload?: (file: File) => void;
   uploadedImage?: string | null;
 }
@@ -57,29 +59,56 @@ const ChatInput = ({ onSend, disabled, mode, onModeChange, onFileUpload, uploade
     chat: {
       icon: MessageSquare,
       label: "Chat",
-      description: "Powered by Gemini 1.5",
+      description: "General AI Assistant",
       gradient: "from-blue-500 to-cyan-500",
+      placeholder: t('typeMessage'),
+    },
+    summarize: {
+      icon: FileText,
+      label: "Summarize",
+      description: "Condense Text",
+      gradient: "from-green-500 to-emerald-500",
+      placeholder: "Paste text to summarize...",
+    },
+    translate: {
+      icon: Languages,
+      label: "Translate",
+      description: "Any Language",
+      gradient: "from-yellow-500 to-orange-500",
+      placeholder: "Enter text to translate (mention target language)...",
+    },
+    code: {
+      icon: Code,
+      label: "Code",
+      description: "Programming Help",
+      gradient: "from-violet-500 to-purple-500",
+      placeholder: "Describe code to write or paste code to explain...",
     },
     image: {
       icon: Wand2,
       label: "Create",
       description: "Image Ideas",
-      gradient: "from-purple-500 to-pink-500",
+      gradient: "from-pink-500 to-rose-500",
+      placeholder: "Describe the image you want to create...",
     },
     edit: {
       icon: ImagePlus,
       label: "Edit",
       description: "Transform Images",
       gradient: "from-orange-500 to-red-500",
+      placeholder: "Describe how to transform this image...",
     },
   };
+
+  const primaryModes: ChatMode[] = ["chat", "summarize", "translate", "code"];
+  const secondaryModes: ChatMode[] = ["image", "edit"];
 
   return (
     <div className={`border-t border-border/40 bg-gradient-to-t from-background via-background to-background/80 backdrop-blur-xl ${isMobile ? 'p-3' : 'p-4 pb-6'}`}>
       <form onSubmit={handleSubmit} className={`${isMobile ? 'max-w-full' : 'max-w-3xl'} mx-auto space-y-3`}>
-        {/* Mode Selector */}
+        {/* Primary Mode Selector */}
         <div className="flex gap-2">
-          {(Object.keys(modeConfig) as Array<keyof typeof modeConfig>).map((key) => {
+          {primaryModes.map((key) => {
             const config = modeConfig[key];
             const Icon = config.icon;
             const isActive = mode === key;
@@ -88,7 +117,7 @@ const ChatInput = ({ onSend, disabled, mode, onModeChange, onFileUpload, uploade
               <button
                 key={key}
                 type="button"
-                onClick={() => key === "edit" ? fileInputRef.current?.click() : onModeChange(key)}
+                onClick={() => onModeChange(key)}
                 className={`flex-1 relative group overflow-hidden rounded-xl transition-all duration-300 ${
                   isActive 
                     ? `bg-gradient-to-br ${config.gradient} text-white shadow-lg shadow-primary/20` 
@@ -109,6 +138,33 @@ const ChatInput = ({ onSend, disabled, mode, onModeChange, onFileUpload, uploade
                 {isActive && (
                   <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 animate-shimmer" />
                 )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Secondary Mode Selector (Image modes) */}
+        <div className="flex gap-2">
+          {secondaryModes.map((key) => {
+            const config = modeConfig[key];
+            const Icon = config.icon;
+            const isActive = mode === key;
+            
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => key === "edit" ? fileInputRef.current?.click() : onModeChange(key)}
+                className={`flex-1 relative group overflow-hidden rounded-lg transition-all duration-300 ${
+                  isActive 
+                    ? `bg-gradient-to-br ${config.gradient} text-white shadow-md` 
+                    : 'bg-card/30 hover:bg-card/50 border border-border/30 hover:border-primary/20'
+                } ${isMobile ? 'p-1.5' : 'p-2'}`}
+              >
+                <div className="flex items-center justify-center gap-1.5">
+                  <Icon className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} ${isActive ? 'animate-pulse' : ''}`} />
+                  <span className={`font-medium ${isMobile ? 'text-[10px]' : 'text-xs'}`}>{config.label}</span>
+                </div>
               </button>
             );
           })}
@@ -160,11 +216,7 @@ const ChatInput = ({ onSend, disabled, mode, onModeChange, onFileUpload, uploade
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={
-                mode === "edit" ? "Describe how to transform this image..." :
-                mode === "image" ? "Describe the image you want to create..." : 
-                t('typeMessage')
-              }
+              placeholder={modeConfig[mode].placeholder}
               className={`${isMobile ? 'min-h-[50px] max-h-[120px] text-sm pr-4' : 'min-h-[56px] max-h-[200px] pr-4'} resize-none rounded-xl border-border/50 bg-card/80 focus-visible:ring-primary/50 focus-visible:ring-2 focus-visible:border-primary/50 transition-all placeholder:text-muted-foreground/60`}
               disabled={disabled}
             />

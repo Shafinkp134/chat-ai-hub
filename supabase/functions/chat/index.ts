@@ -143,8 +143,21 @@ Be creative and inspiring in your response!`
       );
     }
 
-    // Regular chat mode with streaming
-    const systemPrompt = 'You are Stechy, a helpful, friendly, and intelligent AI assistant. You provide clear, concise, and engaging responses. You can help with questions, creative writing, analysis, coding, and more. Format responses nicely using markdown when appropriate.';
+    // Get system prompt based on mode
+    const getSystemPrompt = (mode: string) => {
+      switch (mode) {
+        case 'summarize':
+          return 'You are Stechy, an expert summarization AI. Your task is to provide clear, concise summaries of any text, article, or content provided by the user. Highlight key points, main ideas, and important details. Format your response with bullet points when appropriate.';
+        case 'translate':
+          return 'You are Stechy, a multilingual translation AI. Translate the user\'s text accurately while preserving meaning, tone, and context. If the target language is not specified, ask the user. Support all major languages including English, Spanish, French, German, Chinese, Japanese, Arabic, Hindi, Portuguese, Russian, and more.';
+        case 'code':
+          return 'You are Stechy, an expert coding assistant. Help users write, debug, explain, and optimize code. Support all major programming languages. Provide well-commented, clean code with explanations. Format code blocks properly using markdown.';
+        default:
+          return 'You are Stechy, a helpful, friendly, and intelligent AI assistant. You provide clear, concise, and engaging responses. You can help with questions, creative writing, analysis, coding, and more. Format responses nicely using markdown when appropriate.';
+      }
+    };
+
+    const systemPrompt = getSystemPrompt(mode);
 
     const geminiMessages = messages.map((m: { role: string; content: string }) => ({
       role: m.role === 'assistant' ? 'model' : 'user',

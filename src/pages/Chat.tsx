@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ChatSidebar from "@/components/chat/ChatSidebar";
 import ChatMessages from "@/components/chat/ChatMessages";
-import ChatInput from "@/components/chat/ChatInput";
+import ChatInput, { ChatMode } from "@/components/chat/ChatInput";
 import ChatHeader from "@/components/chat/ChatHeader";
 import { Loader2 } from "lucide-react";
 
@@ -14,7 +14,7 @@ interface Message {
   content: string;
   created_at: string;
   imageUrl?: string;
-  mode?: "chat" | "image" | "edit";
+  mode?: ChatMode;
 }
 
 const Chat = () => {
@@ -25,7 +25,7 @@ const Chat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [chatMode, setChatMode] = useState<"chat" | "image" | "edit">("chat");
+  const [chatMode, setChatMode] = useState<ChatMode>("chat");
   const [isTemporary, setIsTemporary] = useState(false);
   const [remainingCredits, setRemainingCredits] = useState<number | null>(null);
   const [uploadedImageForEdit, setUploadedImageForEdit] = useState<string | null>(null);
